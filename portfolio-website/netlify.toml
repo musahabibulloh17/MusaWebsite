@@ -1,7 +1,13 @@
-# Netlify configuration for Git LFS support
+# Netlify configuration for Git LFS support and SPA routing
 [build]
   command = "npm run build"
   publish = "dist"
+
+# SPA routing - redirect all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 # Git LFS configuration
 # Note: Netlify doesn't automatically pull LFS files during build
