@@ -1,6 +1,7 @@
 # Netlify configuration for Git LFS support and SPA routing
 [build]
-  command = "npm run build"
+  # Fetch Git LFS files before building (plugin should handle this, but this is a fallback)
+  command = "cd .. && git lfs pull && cd portfolio-website && npm run build"
   publish = "dist"
 
 # CRITICAL: Ensure root URL serves React dashboard (index.html)
@@ -26,11 +27,14 @@
   force = false
 
 # Git LFS configuration
-# Note: Netlify doesn't automatically pull LFS files during build
-# You may need to use a build plugin or manual setup
-
+# Netlify plugin to handle Git LFS files during build
 [[plugins]]
   package = "@netlify/plugin-git-lfs"
+  
+# Alternative: Manual Git LFS fetch in build command if plugin doesn't work
+# Uncomment the line below and modify build command if needed:
+# [build]
+#   command = "git lfs pull && npm run build"
 
 # Headers for large files
 [[headers]]
