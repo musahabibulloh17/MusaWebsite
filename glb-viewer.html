@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLB Viewer - Working Version</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            z-index: 100;
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading GLB Model...</div>
+    </div>
+    
+    <div id="info">
+        <h3>🎨 GLB Viewer</h3>
+        <p id="status">Loading...</p>
+        <p><strong>Controls:</strong></p>
+        <p>🖱️ Drag to rotate</p>
+        <p>🔄 Scroll to zoom</p>
+        <p>👆 Right-click to pan</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let loader;
+        
+        function init() {
+            console.log('🚀 Initializing GLB Viewer...');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+            
+            console.log('✅ Renderer created');
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            console.log('✅ Lighting added');
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.enableRotate = true;
+            
+            console.log('✅ Controls initialized');
+            
+            // Loader
+            loader = new THREE.GLTFLoader();
+            
+            // Load model
+            loadModel();
+            
+            // Start animation
+            animate();
+        }
+        
+        function loadModel() {
+            console.log('📁 Attempting to load GLB model...');
+            document.getElementById('status').textContent = 'Loading GLB model...';
+            
+            // Try the exact path
+            const modelPath = 'asset/richards_art_gallery_-_audio_tour.glb';
+            console.log(`🔄 Loading from: ${modelPath}`);
+            
+            loader.load(
+                modelPath,
+                function(gltf) {
+                    console.log('✅ GLB loaded successfully!', gltf);
+                    document.getElementById('status').textContent = 'GLB loaded successfully!';
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    const model = gltf.scene;
+                    scene.add(model);
+                    
+                    // Enable shadows
+                    model.traverse(function(child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    // Auto-fit model
+                    fitModelInView(model);
+                    
+                    console.log('✅ Model added to scene');
+                },
+                function(progress) {
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    document.getElementById('status').textContent = `Loading... ${percent}%`;
+                    console.log(`📊 Progress: ${percent}%`);
+                },
+                function(error) {
+                    console.error('❌ Failed to load GLB:', error);
+                    document.getElementById('status').textContent = 'Failed to load GLB: ' + error.message;
+                    
+                    // Show fallback
+                    setTimeout(() => {
+                        showFallback();
+                    }, 2000);
+                }
+            );
+        }
+        
+        function showFallback() {
+            console.log('🔄 Showing fallback cube');
+            document.getElementById('status').textContent = 'GLB not found, showing fallback';
+            document.getElementById('loading').style.display = 'none';
+            
+            // Add fallback cube
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(0, 1, 0);
+            scene.add(cube);
+            
+            console.log('✅ Fallback cube added');
+        }
+        
+        function fitModelInView(model) {
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            cameraZ *= 1.5;
+            
+            camera.position.set(cameraZ, cameraZ * 0.5, cameraZ);
+            camera.lookAt(center);
+            controls.target.copy(center);
+            controls.update();
+            
+            console.log('✅ Model fitted in view');
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start when page loads
+        window.addEventListener('load', function() {
+            console.log('🌐 Page loaded, starting GLB viewer...');
+            init();
+        });
+    </script>
+</body>
+</html>

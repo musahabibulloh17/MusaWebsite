@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.548.0",
+    "react-router-dom": "^7.9.4"
+  }
+}

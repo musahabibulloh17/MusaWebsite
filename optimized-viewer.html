@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized GLB Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            z-index: 100;
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .performance-info {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading Optimized GLB Model...</div>
+    </div>
+    
+    <div id="info">
+        <h3>🎨 Optimized GLB Viewer</h3>
+        <p id="status">Loading...</p>
+        <p><strong>Controls:</strong></p>
+        <p>🖱️ Drag to rotate</p>
+        <p>🔄 Scroll to zoom</p>
+        <p>👆 Right-click to pan</p>
+        <p><strong>Performance:</strong></p>
+        <p>⚡ Optimized for smooth navigation</p>
+    </div>
+
+    <div class="performance-info">
+        <div id="fps">FPS: --</div>
+        <div id="triangles">Triangles: --</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let loader;
+        let galleryModel;
+        let stats = { fps: 0, triangles: 0 };
+        
+        function init() {
+            console.log('🚀 Initializing Optimized GLB Viewer...');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            
+            // Renderer with optimizations
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: false, // Disable antialiasing for performance
+                alpha: false,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio
+            renderer.shadowMap.enabled = false; // Disable shadows for performance
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            document.body.appendChild(renderer.domElement);
+            
+            console.log('✅ Optimized renderer created');
+            
+            // Optimized lighting (minimal)
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(10, 10, 5);
+            scene.add(directionalLight);
+            
+            console.log('✅ Optimized lighting added');
+            
+            // Optimized controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1; // Faster damping
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.enableRotate = true;
+            controls.autoRotate = false;
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.0;
+            controls.panSpeed = 1.0;
+            
+            console.log('✅ Optimized controls initialized');
+            
+            // Loader
+            loader = new THREE.GLTFLoader();
+            
+            // Load model
+            loadModel();
+            
+            // Start animation
+            animate();
+        }
+        
+        function loadModel() {
+            console.log('📁 Loading optimized GLB model...');
+            document.getElementById('status').textContent = 'Loading GLB model...';
+            
+            loader.load(
+                'asset/richards_art_gallery_-_audio_tour.glb',
+                function(gltf) {
+                    console.log('✅ GLB loaded successfully!', gltf);
+                    document.getElementById('status').textContent = 'GLB loaded successfully!';
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    galleryModel = gltf.scene;
+                    
+                    // Optimize model for performance
+                    optimizeModel(galleryModel);
+                    
+                    scene.add(galleryModel);
+                    
+                    // Auto-fit model
+                    fitModelInView(galleryModel);
+                    
+                    console.log('✅ Optimized model added to scene');
+                },
+                function(progress) {
+                    const percent = Math.round((progress.loaded / progress.total) * 100);
+                    document.getElementById('status').textContent = `Loading... ${percent}%`;
+                },
+                function(error) {
+                    console.error('❌ Failed to load GLB:', error);
+                    document.getElementById('status').textContent = 'Failed to load GLB: ' + error.message;
+                    showFallback();
+                }
+            );
+        }
+        
+        function optimizeModel(model) {
+            console.log('🔧 Optimizing model for performance...');
+            
+            let triangleCount = 0;
+            
+            model.traverse(function(child) {
+                if (child.isMesh) {
+                    // Disable shadows for performance
+                    child.castShadow = false;
+                    child.receiveShadow = false;
+                    
+                    // Optimize materials
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => optimizeMaterial(mat));
+                        } else {
+                            optimizeMaterial(child.material);
+                        }
+                    }
+                    
+                    // Count triangles
+                    if (child.geometry) {
+                        triangleCount += child.geometry.attributes.position.count / 3;
+                    }
+                }
+            });
+            
+            stats.triangles = Math.round(triangleCount);
+            document.getElementById('triangles').textContent = `Triangles: ${stats.triangles.toLocaleString()}`;
+            
+            console.log(`✅ Model optimized. Triangles: ${stats.triangles.toLocaleString()}`);
+        }
+        
+        function optimizeMaterial(material) {
+            // Simplify material properties for performance
+            if (material.map) {
+                material.map.generateMipmaps = false;
+                material.map.minFilter = THREE.LinearFilter;
+                material.map.magFilter = THREE.LinearFilter;
+            }
+            
+            // Disable unnecessary features
+            material.needsUpdate = true;
+        }
+        
+        function showFallback() {
+            console.log('🔄 Showing fallback cube');
+            document.getElementById('status').textContent = 'GLB not found, showing fallback';
+            document.getElementById('loading').style.display = 'none';
+            
+            // Add fallback cube
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(0, 1, 0);
+            scene.add(cube);
+        }
+        
+        function fitModelInView(model) {
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            
+            console.log('Model bounds:', box);
+            console.log('Model center:', center);
+            console.log('Model size:', size);
+            
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            
+            // Much closer view - aggressive positioning
+            cameraZ *= 0.8; // Much closer than before
+            
+            // Very close camera positioning
+            camera.position.set(cameraZ * 0.5, cameraZ * 0.4, cameraZ * 0.5);
+            camera.lookAt(center);
+            controls.target.copy(center);
+            controls.update();
+            
+            console.log('Camera positioned at:', camera.position);
+            console.log('Camera distance from center:', camera.position.distanceTo(center));
+            console.log('✅ Model fitted in view');
+        }
+        
+        let lastTime = 0;
+        let frameCount = 0;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // FPS calculation
+            const currentTime = performance.now();
+            frameCount++;
+            
+            if (currentTime - lastTime >= 1000) {
+                stats.fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fps').textContent = `FPS: ${stats.fps}`;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start when page loads
+        window.addEventListener('load', function() {
+            console.log('🌐 Page loaded, starting optimized GLB viewer...');
+            init();
+        });
+    </script>
+</body>
+</html>
