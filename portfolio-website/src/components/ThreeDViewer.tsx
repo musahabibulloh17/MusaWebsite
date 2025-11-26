@@ -98,15 +98,24 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({ onClose }) => {
 
       // Load 3D model with optimizations
       const loader = new GLTFLoader()
-      loader.load('/art-gallery.glb', (gltf) => {
-        const model = gltf.scene
-        
-        // Optimize model for balanced performance
-        model.scale.set(0.4, 0.4, 0.4) // Balanced scale for good performance
-        model.position.set(0, 0, 0)
-        
-        // High-quality rendering optimizations
-        model.traverse((child) => {
+      
+      // Show loading status
+      const statusElement = document.querySelector('.viewer-info .performance-info')
+      if (statusElement) {
+        (statusElement as HTMLElement).innerHTML = '<p>📥 Memuat model 3D...</p>'
+      }
+      
+      loader.load(
+        '/art-gallery.glb',
+        (gltf) => {
+          const model = gltf.scene
+          
+          // Optimize model for balanced performance
+          model.scale.set(0.4, 0.4, 0.4) // Balanced scale for good performance
+          model.position.set(0, 0, 0)
+          
+          // High-quality rendering optimizations
+          model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true // Enable shadow casting
             child.receiveShadow = true // Enable shadow receiving
@@ -167,11 +176,38 @@ const ThreeDViewer: React.FC<ThreeDViewerProps> = ({ onClose }) => {
           }
         })
         
-        scene.add(model)
-        modelRef.current = model
-      }, undefined, (error) => {
-        console.error('Error loading 3D model:', error)
-      })
+          scene.add(model)
+          modelRef.current = model
+          
+          // Update status on success
+          if (statusElement) {
+            (statusElement as HTMLElement).innerHTML = '<p>✅ Model berhasil dimuat!</p>'
+          }
+        },
+        // Progress callback with Infinity fix
+        (progress) => {
+          let percent = 0
+          if (progress.total && progress.total > 0) {
+            percent = Math.round((progress.loaded / progress.total) * 100)
+            percent = Math.min(100, Math.max(0, percent))
+          } else {
+            // Indeterminate progress if total is unknown
+            percent = progress.loaded > 0 ? Math.min(99, Math.round(progress.loaded / 1000000)) : 0
+          }
+          
+          if (statusElement) {
+            (statusElement as HTMLElement).innerHTML = `<p>📥 Memuat model 3D... ${percent}%</p>`
+          }
+          console.log('📊 Loading progress:', progress.loaded, '/', progress.total, '=', percent + '%')
+        },
+        (error) => {
+          console.error('Error loading 3D model:', error)
+          const errorMessage = error instanceof Error ? error.message : 'Gagal memuat model'
+          if (statusElement) {
+            (statusElement as HTMLElement).innerHTML = `<p>❌ Error: ${errorMessage}</p>`
+          }
+        }
+      )
 
       // Setup PointerLockControls for FPS-style navigation
       const controls = new PointerLockControls(camera, renderer.domElement)

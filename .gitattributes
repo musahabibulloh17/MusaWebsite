@@ -1,1 +1,2 @@
+# Git LFS configuration
 *.glb filter=lfs diff=lfs merge=lfs -text

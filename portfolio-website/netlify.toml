@@ -1,0 +1,19 @@
+# Netlify configuration for Git LFS support
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Git LFS configuration
+# Note: Netlify doesn't automatically pull LFS files during build
+# You may need to use a build plugin or manual setup
+
+[[plugins]]
+  package = "@netlify/plugin-git-lfs"
+
+# Headers for large files
+[[headers]]
+  for = "/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
+    Cache-Control = "public, max-age=31536000, immutable"
+
