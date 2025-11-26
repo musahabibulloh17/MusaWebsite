@@ -11,14 +11,7 @@ const Gallery3D: React.FC = () => {
   const viewerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setIsVisible(true)
     setIsFullScreen(false)
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      setIsFullScreen(false)
-    }
   }, [])
 
   const toggleFullScreen = () => {
