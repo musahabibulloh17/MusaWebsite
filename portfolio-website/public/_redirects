@@ -1,26 +1,12 @@
-# Netlify SPA redirects
-# IMPORTANT: Root URL must always serve index.html (React app)
+# Netlify SPA redirects - CRITICAL for React app
+# This file MUST be in public/ folder to be copied to dist/ during build
+
+# Root URL MUST serve index.html (React dashboard)
 /    /index.html   200
 
-# Allow wasd-viewer.html to be accessed directly (for iframe)
+# Allow wasd-viewer.html for iframe (Gallery3D page needs this)
 /wasd-viewer.html    /wasd-viewer.html   200
 
-# Allow static assets
-/*.js   200
-/*.css   200
-/*.png   200
-/*.jpg   200
-/*.jpeg   200
-/*.gif   200
-/*.svg   200
-/*.ico   200
-/*.woff   200
-/*.woff2   200
-/*.ttf   200
-/*.eot   200
-/*.glb   200
-/*.gltf   200
-
-# Redirect all other routes to index.html for SPA
+# All other routes serve index.html for SPA routing
 /*    /index.html   200
 

@@ -4,7 +4,7 @@ import Button from '../components/Button'
 import './Gallery3D.css'
 
 const Gallery3D: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false)
+  // Removed unused isVisible state
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [headerRef, isHeaderVisible] = useScrollAnimation(0.2)
   const [contentRef, isContentVisible] = useScrollAnimation(0.1)

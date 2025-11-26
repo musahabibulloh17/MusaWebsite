@@ -3,27 +3,9 @@
   command = "npm run build"
   publish = "dist"
 
-# SPA routing - CRITICAL: Root URL must serve React app
-# Priority: Root URL first, then other routes
-[[redirects]]
-  from = "/"
-  to = "/index.html"
-  status = 200
-  force = true
-
-# Allow wasd-viewer.html to be accessed (for iframe in Gallery3D page)
-[[redirects]]
-  from = "/wasd-viewer.html"
-  to = "/wasd-viewer.html"
-  status = 200
-  force = true
-
-# Redirect all other routes to index.html for SPA
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
+# NOTE: SPA routing is handled by _redirects file in public folder
+# The _redirects file will be copied to dist/ during build
+# This file has higher priority than redirects in netlify.toml
 
 # Git LFS configuration
 # Note: Netlify doesn't automatically pull LFS files during build

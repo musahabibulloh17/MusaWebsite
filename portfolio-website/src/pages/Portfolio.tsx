@@ -3,7 +3,7 @@ import { useScrollAnimation } from '../hooks/useScrollAnimation'
 import './Portfolio.css'
 
 const Portfolio: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false)
+  // Removed unused isVisible state
   const [activeFilter, setActiveFilter] = useState('All')
   const [headerRef, isHeaderVisible] = useScrollAnimation(0.2)
   const [projectsRef, isProjectsVisible] = useScrollAnimation(0.1)

@@ -3,7 +3,7 @@ import { useScrollAnimation } from '../hooks/useScrollAnimation'
 import './About.css'
 
 const About: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false)
+  // Removed unused isVisible state
   const [headerRef, isHeaderVisible] = useScrollAnimation(0.2)
   const [contentRef, isContentVisible] = useScrollAnimation(0.1)
   const [statsRef, isStatsVisible] = useScrollAnimation(0.1)

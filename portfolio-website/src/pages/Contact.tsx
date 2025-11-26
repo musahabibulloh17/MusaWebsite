@@ -9,7 +9,7 @@ const Contact: React.FC = () => {
     subject: '',
     message: ''
   })
-  const [isVisible, setIsVisible] = useState(false)
+  // Removed unused isVisible state
   const [headerRef, isHeaderVisible] = useScrollAnimation(0.2)
   const [contentRef, isContentVisible] = useScrollAnimation(0.1)
 
