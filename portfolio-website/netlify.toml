@@ -4,6 +4,8 @@
   publish = "dist"
 
 # SPA routing - redirect all routes to index.html
+# The _redirects file in public folder will handle this
+# This is a fallback configuration
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -1,3 +1,6 @@
-# Netlify SPA redirects - all routes should serve index.html
+# Netlify SPA redirects
+# Redirect all routes to index.html except for actual files
+# Static files (js, css, images, etc.) will be served directly
+# This ensures the React app loads for all routes
 /*    /index.html   200
 
